@@ -4,7 +4,7 @@ File to Markdown Converter
 ===========================
 
 A comprehensive Python script that converts Excel files (CSV/XLSX) and PDFs 
-to markdown format optimized for LLM consumption.
+to markdown format for LLM consumption.
 
 Features:
 - Excel/CSV to structured markdown tables
@@ -745,12 +745,15 @@ class FileConverter:
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
 def main(input_path, output, output_dir, max_rows, max_cols, sheets, 
          table_format, no_metadata, memory_limit, extensions, recursive, verbose):
-    """Convert Excel/CSV/PDF files to markdown format optimized for LLM consumption.
+    """Convert Excel/CSV/PDF files to markdown format for LLM consumption.
     
-    INPUT_PATH can be:
+    INPUT_PATH can be:\n
     - Single file: file_to_md.py data.csv
+    
     - Multiple files: file_to_md.py file1.csv file2.xlsx file3.pdf
+    
     - Directory: file_to_md.py /path/to/folder/ (processes all supported files)
+    
     - Mixed: file_to_md.py file1.csv /path/to/folder/ file2.pdf
     """
     
