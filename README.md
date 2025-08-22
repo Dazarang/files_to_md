@@ -2,6 +2,21 @@
 
 A comprehensive Python script that converts Excel files (CSV/XLSX) and PDFs to markdown format optimized for LLM consumption.
 
+## Installation
+
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
+
+```bash
+# 1) Ensure the pinned Python is available (reads .python-version if present)
+uv python install
+
+# 2) Create & populate the env from pyproject.toml / uv.lock
+uv sync
+
+# 3) (Optional) run commands inside the env
+uv run python -V
+```
+
 ## Features
 
 - **Excel/CSV Support**: Convert CSV, XLSX, and XLS files to structured markdown tables
@@ -44,21 +59,6 @@ uv run python file_to_md.py /project/ --recursive
 Automatically handles filename conflicts by adding numbered suffixes:
 - `data.md` → `data_1.md` → `data_2.md` (etc.)
 - Prevents accidental overwriting of existing files
-
-## Installation
-
-This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
-
-```bash
-# 1) Ensure the pinned Python is available (reads .python-version if present)
-uv python install
-
-# 2) Create & populate the env from pyproject.toml / uv.lock
-uv sync
-
-# 3) (Optional) run commands inside the env
-uv run python -V
-```
 
 ## Usage
 
