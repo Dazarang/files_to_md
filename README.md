@@ -4,6 +4,12 @@ A comprehensive Python script that converts Excel files (CSV/XLSX) and PDFs to m
 
 ## Installation
 
+First, clone the repository:
+```bash
+git clone git@github.com:Dazarang/files_to_md.git
+cd files_to_md
+```
+
 This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
 
 ```bash
@@ -13,7 +19,12 @@ uv python install
 # 2) Create & populate the env from pyproject.toml / uv.lock
 uv sync
 
-# 3) (Optional) run commands inside the env
+# 3) (Optional) activate the virtual environment manually
+# Note: uv handles this automatically, but you can activate if preferred
+source .venv/bin/activate  # On macOS/Linux
+# .venv\Scripts\activate   # On Windows
+
+# 4) (Optional) run commands inside the env
 uv run python -V
 ```
 
