@@ -1,0 +1,25 @@
+[project]
+name = "file-to-md"
+version = "0.1.0"
+description = "Convert file to md for LLM"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "chardet>=5.2.0",
+    "click>=8.2.1",
+    "colorama>=0.4.6",
+    "markdownify>=1.2.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.2",
+    "pdfplumber>=0.11.7",
+    "psutil>=7.0.0",
+    "pymupdf>=1.26.3",
+    "pypdf2>=3.0.1",
+    "python-magic-bin>=0.4.14",
+    "python-markdown>=0.1.0",
+    "rich>=14.1.0",
+    "tabulate>=0.9.0",
+    "tqdm>=4.67.1",
+    "validators>=0.35.0",
+    "xlrd>=2.0.2",
+]
