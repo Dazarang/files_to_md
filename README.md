@@ -10,7 +10,7 @@ A comprehensive Python script that converts Excel files (CSV/XLSX) and PDFs to m
 - **Robust Error Handling**: Comprehensive edge case management and validation
 - **Memory Efficient**: Handles large files with configurable memory limits
 - **Rich CLI**: Command-line interface with progress indicators
-- **Highly Configurable**: Multiple conversion strategies and formatting options
+- **Highly Configurable**: Multiple table formatting and output options
 - **Batch Processing**: Convert multiple files at once with progress tracking
 - **Directory Processing**: Recursively process entire directories
 - **Duplicate Safety**: Automatic filename conflict resolution with suffix numbering
@@ -96,10 +96,6 @@ uv run python file_to_md.py /folder/ --extensions "xlsx,pdf"
 # Recursive directory processing
 uv run python file_to_md.py /folder/ --recursive --extensions "csv,xlsx"
 
-# Choose conversion strategy
-uv run python file_to_md.py data.csv --strategy structured  # Preserve structure
-uv run python file_to_md.py data.csv --strategy flattened   # Flatten for LLM
-uv run python file_to_md.py data.csv --strategy hybrid      # Balanced (default)
 
 # Limit processing for large files
 uv run python file_to_md.py large_file.xlsx --max-rows 1000 --max-cols 20
@@ -134,22 +130,14 @@ uv run python file_to_md.py problematic_file.pdf --verbose
 - **Layout preservation**: Maintains document structure when possible
 - **Multi-page support**: Processes entire documents with progress tracking
 
-## Conversion Strategies
+## Output Features
 
-### Structured
-- Preserves original data structure
-- Includes summary statistics for numerical data
-- Best for data analysis and detailed review
-
-### Flattened
-- Optimizes content for LLM consumption
-- Simplifies complex structures
-- Best for AI training data or automated processing
-
-### Hybrid (Default)
-- Balances structure preservation with readability
-- Includes metadata and summaries where helpful
-- Best general-purpose option
+### Optimized for LLMs
+- Clean markdown formatting for easy parsing
+- Structured tables with clear headers
+- Metadata sections for context
+- Summary statistics for numerical data
+- Consistent formatting across all file types
 
 ## Examples
 
@@ -158,7 +146,7 @@ uv run python file_to_md.py problematic_file.pdf --verbose
 # Convert multiple specific files
 uv run python file_to_md.py report1.xlsx data.csv analysis.pdf \\
   --output-dir converted_files/ \\
-  --strategy hybrid \\
+  --table-format github \\
   --verbose
 ```
 
@@ -176,7 +164,7 @@ uv run python file_to_md.py /data_folder/ \\
 # Process all supported files in directory tree
 uv run python file_to_md.py /project_docs/ \\
   --recursive \\
-  --strategy structured \\
+\
   --table-format grid
 ```
 
@@ -185,7 +173,7 @@ uv run python file_to_md.py /project_docs/ \\
 uv run python file_to_md.py employee_data.csv \\
   --max-rows 500 \\
   --table-format grid \\
-  --strategy structured \\
+\
   --verbose
 ```
 
@@ -194,7 +182,7 @@ uv run python file_to_md.py employee_data.csv \\
 uv run python file_to_md.py financial_report.xlsx \\
   --sheets "Summary,Q1,Q2,Q3,Q4" \\
   --output-dir reports/ \\
-  --strategy hybrid
+  --table-format github
 ```
 
 ## Output Examples

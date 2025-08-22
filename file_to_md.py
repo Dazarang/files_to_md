@@ -51,20 +51,12 @@ class FileType(Enum):
     UNKNOWN = "unknown"
 
 
-class ConversionStrategy(Enum):
-    """Different strategies for markdown conversion."""
-    STRUCTURED = "structured"  # Preserve original structure
-    FLATTENED = "flattened"   # Flatten for better LLM consumption
-    HYBRID = "hybrid"         # Balance between structure and readability
-
-
 @dataclass
 class ConversionConfig:
     """Configuration settings for file conversion."""
     # Output settings
     output_dir: Optional[Path] = None
     output_filename: Optional[str] = None
-    strategy: ConversionStrategy = ConversionStrategy.HYBRID
     
     # Excel/CSV settings
     max_rows: Optional[int] = None
@@ -238,7 +230,6 @@ class FileConverter:
 **File Type:** {file_type.value.upper()}  
 **File Size:** {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)  
 **Last Modified:** {pd.to_datetime(mod_time, unit='s').strftime('%Y-%m-%d %H:%M:%S')}  
-**Conversion Strategy:** {self.config.strategy.value}  
 **Converted On:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}  
 ---"""
             return metadata
@@ -524,6 +515,9 @@ class FileConverter:
             # Clean DataFrame
             df = df.copy()
             
+            # Store original dtypes before conversion for statistics
+            original_df = df.copy()
+            
             # Handle NaN values
             df = df.fillna('')
             
@@ -569,23 +563,22 @@ class FileConverter:
                 )
                 markdown_parts.append(f"{table_md}\n")
             
-            # Add summary statistics for numerical data
-            if self.config.strategy in [ConversionStrategy.STRUCTURED, ConversionStrategy.HYBRID]:
-                numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-                if len(numeric_cols) > 0:
-                    try:
-                        df_numeric = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-                        summary = df_numeric.describe()
-                        if not summary.empty:
-                            summary_md = tabulate(
-                                summary, 
-                                headers='keys', 
-                                tablefmt=self.config.table_format,
-                                showindex=True
-                            )
-                            markdown_parts.append(f"#### Summary Statistics\n\n{summary_md}\n")
-                    except Exception as e:
-                        self.logger.debug(f"Could not generate summary statistics: {e}")
+            # Add summary statistics for numerical data (using original DataFrame before string conversion)
+            numeric_cols = original_df.select_dtypes(include=['float64', 'int64']).columns
+            if len(numeric_cols) > 0:
+                try:
+                    df_numeric = original_df[numeric_cols].apply(pd.to_numeric, errors='coerce')
+                    summary = df_numeric.describe()
+                    if not summary.empty:
+                        summary_md = tabulate(
+                            summary, 
+                            headers='keys', 
+                            tablefmt=self.config.table_format,
+                            showindex=True
+                        )
+                        markdown_parts.append(f"#### Summary Statistics\n\n{summary_md}\n")
+                except Exception as e:
+                    self.logger.debug(f"Could not generate summary statistics: {e}")
             
             return "\n".join(markdown_parts)
             
@@ -739,8 +732,6 @@ class FileConverter:
 @click.argument('input_path', type=click.Path(exists=True, path_type=Path), nargs=-1, required=True)
 @click.option('-o', '--output', type=click.Path(path_type=Path), help='Output file path (single file only)')
 @click.option('--output-dir', type=click.Path(path_type=Path), help='Output directory')
-@click.option('--strategy', type=click.Choice(['structured', 'flattened', 'hybrid']), 
-              default='hybrid', help='Conversion strategy')
 @click.option('--max-rows', type=int, help='Maximum rows to process')
 @click.option('--max-cols', type=int, help='Maximum columns to process')
 @click.option('--sheets', help='Comma-separated list of sheet names to process (Excel only)')
@@ -752,7 +743,7 @@ class FileConverter:
               help='File extensions to process when scanning directories (comma-separated)')
 @click.option('--recursive', '-r', is_flag=True, help='Process directories recursively')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
-def main(input_path, output, output_dir, strategy, max_rows, max_cols, sheets, 
+def main(input_path, output, output_dir, max_rows, max_cols, sheets, 
          table_format, no_metadata, memory_limit, extensions, recursive, verbose):
     """Convert Excel/CSV/PDF files to markdown format optimized for LLM consumption.
     
@@ -770,7 +761,6 @@ def main(input_path, output, output_dir, strategy, max_rows, max_cols, sheets,
     config = ConversionConfig(
         output_dir=output_dir,
         output_filename=output.name if output else None,
-        strategy=ConversionStrategy(strategy),
         max_rows=max_rows,
         max_cols=max_cols,
         sheet_names=sheets.split(',') if sheets else None,
@@ -834,7 +824,6 @@ def main(input_path, output, output_dir, strategy, max_rows, max_cols, sheets,
         console.print(Panel.fit(
             "[bold blue]File to Markdown Converter[/bold blue]\n"
             f"Input: [green]{input_summary}[/green]\n"
-            f"Strategy: [yellow]{strategy}[/yellow]\n"
             f"Extensions: [cyan]{', '.join(supported_extensions)}[/cyan]",
             border_style="blue"
         ))
