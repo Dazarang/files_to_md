@@ -155,44 +155,42 @@ uv run python file_to_md.py problematic_file.pdf --verbose
 ### Batch Processing Multiple Files
 ```bash
 # Convert multiple specific files
-uv run python file_to_md.py report1.xlsx data.csv analysis.pdf \\
-  --output-dir converted_files/ \\
-  --table-format github \\
+uv run python file_to_md.py report1.xlsx data.csv analysis.pdf 
+  --output-dir converted_files/ 
+  --table-format github 
   --verbose
 ```
 
 ### Directory Processing with Filtering
 ```bash
 # Process only Excel and PDF files in a directory
-uv run python file_to_md.py /data_folder/ \\
-  --extensions "xlsx,pdf" \\
-  --output-dir markdown_output/ \\
+uv run python file_to_md.py /data_folder/ 
+  --extensions "xlsx,pdf" 
+  --output-dir markdown_output/ 
   --max-rows 1000
 ```
 
 ### Recursive Directory Processing
 ```bash
 # Process all supported files in directory tree
-uv run python file_to_md.py /project_docs/ \\
-  --recursive \\
-\
+uv run python file_to_md.py /project_docs/ 
+  --recursive 
   --table-format grid
 ```
 
 ### CSV with Custom Options
 ```bash
-uv run python file_to_md.py employee_data.csv \\
-  --max-rows 500 \\
-  --table-format grid \\
-\
+uv run python file_to_md.py employee_data.csv 
+  --max-rows 500 
+  --table-format grid 
   --verbose
 ```
 
 ### Excel Multi-Sheet Processing
 ```bash
-uv run python file_to_md.py financial_report.xlsx \\
-  --sheets "Summary,Q1,Q2,Q3,Q4" \\
-  --output-dir reports/ \\
+uv run python file_to_md.py financial_report.xlsx 
+  --sheets "Summary,Q1,Q2,Q3,Q4" 
+  --output-dir reports/ 
   --table-format github
 ```
 
