@@ -2,6 +2,22 @@
 
 A comprehensive Python script that converts Excel files (CSV/XLSX) and PDFs to markdown format optimized for LLM consumption.
 
+## Prerequisites
+
+- Python 3.12+ (uv handles this automatically)
+- For OCR functionality:
+  - **Required dependencies**:
+    - Tesseract OCR:
+      - Ubuntu/Debian: `sudo apt-get install tesseract-ocr`
+      - macOS: `brew install tesseract`
+      - Windows: Download from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
+    - Ghostscript:
+      - Ubuntu/Debian: `sudo apt-get install ghostscript`
+      - macOS: `brew install ghostscript`
+  - **Optional tools** for better OCR quality:
+    - pngquant: `sudo apt-get install pngquant` (image optimization)
+    - unpaper: `sudo apt-get install unpaper` (document cleaning)
+
 ## Installation
 
 First, clone the repository:
@@ -32,6 +48,7 @@ uv run python -V
 
 - **Excel/CSV Support**: Convert CSV, XLSX, and XLS files to structured markdown tables
 - **PDF Processing**: Extract text and tables from PDFs with multiple extraction strategies
+- **OCR Support**: Make unsearchable PDFs searchable using Tesseract OCR
 - **LLM-Optimized**: Output formatted specifically for easy AI/LLM consumption
 - **Robust Error Handling**: Comprehensive edge case management and validation
 - **Memory Efficient**: Handles large files with configurable memory limits
@@ -126,6 +143,18 @@ uv run python file_to_md.py large_file.pdf --memory-limit 2048  # 2GB limit
 
 # Verbose output for debugging
 uv run python file_to_md.py problematic_file.pdf --verbose
+
+# OCR for unsearchable PDFs
+uv run python file_to_md.py scanned_document.pdf --ocr
+
+# OCR with high quality
+uv run python file_to_md.py document.pdf --ocr --ocr-quality high
+
+# OCR with multiple languages
+uv run python file_to_md.py document.pdf --ocr --ocr-language "eng+fra"
+
+# Force OCR even if PDF has text
+uv run python file_to_md.py document.pdf --ocr --ocr-force
 ```
 
 ## Supported File Types
@@ -140,6 +169,7 @@ uv run python file_to_md.py problematic_file.pdf --verbose
 - **Table detection**: Automatic table identification and formatting
 - **Layout preservation**: Maintains document structure when possible
 - **Multi-page support**: Processes entire documents with progress tracking
+- **OCR processing**: Convert scanned/unsearchable PDFs to searchable text
 
 ## Output Features
 
@@ -192,6 +222,18 @@ uv run python file_to_md.py financial_report.xlsx
   --sheets "Summary,Q1,Q2,Q3,Q4" 
   --output-dir reports/ 
   --table-format github
+```
+
+### OCR Processing for unsearchable PDFs
+```bash
+# Process scanned PDF with OCR
+uv run python file_to_md.py scanned_invoice.pdf --ocr
+
+# Batch process PDFs with high-quality OCR
+uv run python file_to_md.py *.pdf --ocr --ocr-quality high --output-dir processed/
+
+# OCR with German language support
+uv run python file_to_md.py german_doc.pdf --ocr --ocr-language deu
 ```
 
 ## Output Examples
@@ -315,6 +357,7 @@ Core dependencies managed via uv:
 - `pandas`: Data processing and Excel/CSV reading
 - `openpyxl`, `xlrd`: Excel file support
 - `PyPDF2`, `pdfplumber`, `pymupdf`: PDF processing
+- `ocrmypdf`: OCR processing for unsearchable PDFs
 - `click`: CLI framework
 - `rich`: Enhanced console output
 - `tabulate`: Table formatting

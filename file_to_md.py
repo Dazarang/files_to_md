@@ -40,6 +40,7 @@ import chardet
 import magic
 import validators
 import psutil
+from pdf_ocr import PDFOCRProcessor, OCRConfig, OCRQuality, create_ocr_processor
 
 
 class FileType(Enum):
@@ -68,7 +69,10 @@ class ConversionConfig:
     extract_images: bool = False
     preserve_layout: bool = True
     table_detection: bool = True
-    ocr_fallback: bool = False
+    ocr_enabled: bool = False
+    ocr_quality: str = "balanced"
+    ocr_language: str = "eng"
+    ocr_force: bool = False
     
     # Markdown formatting
     table_format: str = "github"  # github, grid, simple, etc.
@@ -331,6 +335,55 @@ class FileConverter:
     def _convert_pdf(self, file_path: Path) -> Optional[str]:
         """Convert PDF file to markdown using multiple extraction methods."""
         try:
+            # Apply OCR if enabled
+            if self.config.ocr_enabled:
+                self.logger.info("OCR is enabled, checking if PDF needs OCR processing...")
+                ocr_processor = create_ocr_processor(
+                    quality=self.config.ocr_quality,
+                    language=self.config.ocr_language,
+                    force_ocr=self.config.ocr_force,
+                    preserve_layout=self.config.preserve_layout
+                )
+                
+                # Check if PDF needs OCR
+                if not ocr_processor.check_pdf_has_text(file_path) or self.config.ocr_force:
+                    self.logger.info("Running OCR on PDF...")
+                    ocr_output = file_path.parent / f"{file_path.stem}_ocr{file_path.suffix}"
+                    processed_path = ocr_processor.process_pdf(
+                        input_path=file_path,
+                        output_path=ocr_output,
+                        check_existing_text=not self.config.ocr_force
+                    )
+                    
+                    if processed_path and processed_path != file_path:
+                        self.logger.info(f"OCR completed, using processed file: {processed_path}")
+                        file_path = processed_path
+                    elif processed_path == file_path:
+                        self.logger.info("PDF already has text, using original file")
+                    else:
+                        self.logger.warning("OCR processing failed")
+                        # Try alternative image-based OCR
+                        self.logger.info("Attempting alternative image-based OCR...")
+                        ocr_text = ocr_processor.ocr_pdf_via_images(
+                            file_path, 
+                            language=self.config.ocr_language
+                        )
+                        if ocr_text:
+                            # Save the OCR text to a temporary markdown file
+                            temp_md = file_path.parent / f"{file_path.stem}_ocr_text.md"
+                            with open(temp_md, 'w', encoding='utf-8') as f:
+                                f.write(f"# OCR Extracted Text from {file_path.name}\n\n")
+                                f.write(ocr_text)
+                            self.logger.info(f"Image-based OCR succeeded, saved to: {temp_md}")
+                            # Return the OCR text directly instead of continuing with regular extraction
+                            return ocr_text
+                        else:
+                            self.logger.warning("Image-based OCR also failed, continuing with original file")
+                            if not self.config.verbose:
+                                self.logger.info("Run with --verbose for detailed error information")
+                else:
+                    self.logger.info("PDF already has searchable text, skipping OCR")
+            
             markdown_parts = []
             
             # Method 1: Try pdfplumber for structured extraction (best for tables)
@@ -742,9 +795,17 @@ class FileConverter:
 @click.option('--extensions', default='csv,xlsx,xls,pdf', 
               help='File extensions to process when scanning directories (comma-separated)')
 @click.option('--recursive', '-r', is_flag=True, help='Process directories recursively')
+@click.option('--ocr', is_flag=True, help='Enable OCR for unsearchable PDFs')
+@click.option('--ocr-quality', type=click.Choice(['fast', 'balanced', 'high']), default='balanced',
+              help='OCR quality level')
+@click.option('--ocr-language', default='eng', 
+              help='OCR language(s) - e.g., "eng", "deu", "eng+fra"')
+@click.option('--ocr-force', is_flag=True, 
+              help='Force OCR even if PDF already has text')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
 def main(input_path, output, output_dir, max_rows, max_cols, sheets, 
-         table_format, no_metadata, memory_limit, extensions, recursive, verbose):
+         table_format, no_metadata, memory_limit, extensions, recursive, 
+         ocr, ocr_quality, ocr_language, ocr_force, verbose):
     """Convert Excel/CSV/PDF files to markdown format for LLM consumption.
     
     INPUT_PATH can be:\n
@@ -770,6 +831,10 @@ def main(input_path, output, output_dir, max_rows, max_cols, sheets,
         table_format=table_format,
         add_metadata=not no_metadata,
         memory_limit_mb=memory_limit,
+        ocr_enabled=ocr,
+        ocr_quality=ocr_quality,
+        ocr_language=ocr_language,
+        ocr_force=ocr_force,
         verbose=verbose
     )
     
